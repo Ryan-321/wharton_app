@@ -10,9 +10,9 @@ const { API_KEY } = process.env;
 
 // const symbols = ['IBM'];
 
-function get(req, res) {
+async function get(req, res) {
   const { timeInterval, stockSymbol } = req.query;
-  const response = axios({
+  const response = await axios({
     method: 'get',
     url: URL,
     params: {
@@ -21,13 +21,16 @@ function get(req, res) {
       interval: timeInterval, // Ex.'60min',
       symbol: stockSymbol // Ex. 'IBM'
     }
-  }).then(({ headers, data }) => {
-    console.log({ headers, data  });
-
-    const labelData = transform(data);
-    const results = run(labelData);
-    res.json(results);
   });
+
+  const { headers, data } = response;
+  console.log({ headers, data  });
+
+  // transform the data
+  const tData = transform(data);
+  // run the LR model
+  const results = await run(tData.ranges, tData.volumes);
+  res.json(results);
 }
 
 module.exports = {
